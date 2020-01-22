@@ -10,6 +10,6 @@ I will be adding comments to the documents to show logic soon.
 This was made for a senior project, so the code translates the basic aspects of OOP used in Java.
 
 ## Direct Collaborators
-Jonathan-Moore-312
+Jonathan-Moore: Jonathan-Moore-312  
 
-Matthew-Sanders-Canadia013
+Matthew Sanders: Canadia013
