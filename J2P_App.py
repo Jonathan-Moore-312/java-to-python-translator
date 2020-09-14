@@ -4,6 +4,7 @@ import os
 import shutil
 import translator
 import importlib
+import time
 
 file = ""
 
@@ -79,7 +80,12 @@ writeButton.grid(row=2, column=2, sticky=W+E)
 def translateFile():
     pythonText.delete("1.0", END)
     newFile = open("translatedFile.py", "w")
+    start_time = time.perf_counter()
     translator.main()
+    end_time = time.perf_counter()
+    total_time = round(end_time - start_time, 4)
+    del start_time
+    del end_time
     transarr = translator.transarr
     shutil.os.remove("fileToParse.java")
     number_indents = 0
@@ -108,6 +114,7 @@ def translateFile():
     importlib.reload(translator)
 
     resultsText.insert(END, "JAVA FILE HAS BEEN TRANSLATED TO PYTHON\n")
+    resultsText.insert(END, "TOTAL TIME TO TRANSLATE: " + str(total_time) + " SECONDS\n")
     resultsText.insert(END, "**************************\n")
 
     newFile.close()

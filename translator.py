@@ -29,7 +29,7 @@ def main():
             class_count = -1
             transarr.append(x)
         elif(x == ' '):
-            if(index >= 1):
+            if(index > 1):
                 if(transarr[-1] == ' '):
                     pass
                 else:
@@ -41,7 +41,7 @@ def main():
         elif(x == 'void'):
             transarr.append('def')
         elif(x == 'int' or x == 'String' or x == 'short' or x == 'long' or
-             x == 'float' or x == 'double' or x == 'void'):
+             x == 'float' or x == 'double' or x == 'void' or x == 'new'):
             if(arr[index+2] == '('):
                 transarr.append('def')
             elif(arr[index+3] == '('):
@@ -75,8 +75,6 @@ def main():
             pass
         elif(x == ';'):
             pass
-        elif(x == 'System.out.println'):
-            transarr.append('print')
         elif(x[0:4] == 'this'):
             transarr.append('self'+x[4:])
         elif(len(class_name) >= 1 and x == class_name and class_name != ' '):
@@ -128,7 +126,9 @@ def main():
             except ValueError:
                 pass
             transarr.insert(transarr.index(
-                ')', transarr.index('print')), ", end = ''")
+                ')', index), ", end = ''")
+        if(z == 'System.out.println'):
+            transarr[index] = 'print'
         if(z == 'if'):
             try:
                 if(transarr[transarr.index(')', index)+1] != ':'):
@@ -147,13 +147,14 @@ def main():
                 x = transarr.index('(', index+1)
                 y = transarr.index(')', index+1)
                 q = transarr.index('=', index+1)
+                variable_name = transarr[x+1]
                 if(x != 1 and y != -1):
                     if(q < y):
                         print(transarr[x:y+1])
                         bool_local = 0
-                        incriment_local = 0
                         maximum_modifier = ""
                         u = x+1
+                        incriment_modifier = ""
                         while(u < y):
                             if(transarr[u] == '>='):
                                 bool_local = u
@@ -163,20 +164,61 @@ def main():
                                 maximum_modifier = " + 1"
                                 bool_local = u
                                 u += 1
+                                print("Here <=")
                             elif(transarr[u] == '>' or transarr[u] == '<'):
                                 bool_local = u
                                 u += 1
                             elif(transarr[u] == '++'):
-                                incrimentation = 1
-                                incriment_local = u
                                 u += 1
-                            elif(transarr[u] == '-=' or transarr[u] == '+=' or
-                                 (transarr[u] == '=' and u > q)):
-                                incriment_local = u
+                            elif(transarr[u] == '-='):
+                                for o in transarr[u+1:y]:
+                                    if(o != variable_name):
+                                        incriment_modifier = incriment_modifier + o
+                                    else:
+                                        while(incriment_modifier.endswith(" ")):
+                                            incriment_modifier = incriment_modifier[:-1]
+                                while(incriment_modifier.endswith("+") or
+                                      incriment_modifier.endswith("-")or
+                                      incriment_modifier.endswith(" ")):
+                                    incriment_modifier = incriment_modifier[:-1]
+                                while(incriment_modifier.startswith("+") or
+                                      incriment_modifier.startswith(" ")):
+                                    incriment_modifier = incriment_modifier[1:]
+                                incriment_modifier = "-(" + incriment_modifier + ")"
+                                u += 1
+                            elif(transarr[u] == '+='):
+                                for o in transarr[u+1:y]:
+                                    if(o != variable_name):
+                                        incriment_modifier = incriment_modifier + o
+                                u += 1
+                            elif(transarr[u] == '=' and u > q):
+                                for o in transarr[u+2:y]:
+                                    if(o != variable_name):
+                                        incriment_modifier = incriment_modifier + o
+                                    elif(incriment_modifier.endswith("-") or incriment_modifier.endswith("- ")):
+                                        tab_count = 1
+                                        first_line_local = transarr.index(
+                                            '\n', q+1)
+                                        while(tab_count != 0):
+                                            second_line_local = transarr.index(
+                                                '\n', first_line_local+1)
+                                            tab_count = tab_count + transarr[first_line_local:second_line_local].count(
+                                                ':') - transarr[first_line_local:second_line_local].count(
+                                                    '\t')
+                                            first_line_local = int(second_line_local)
+                                        tab_count = transarr[0:second_line_local].count(
+                                            ':')
+                                        while(incriment_modifier.endswith("-") or incriment_modifier.endswith(" ")):
+                                            incriment_modifier = incriment_modifier[:-1]
+                                        transarr.insert(first_line_local-1,
+                                                        "".join(variable_name + " = -" + variable_name))
+                                    else:
+                                        if(incriment_modifier.endswith("+ ")):
+                                            incriment_modifier = incriment_modifier[:-3]
+
                                 u += 1
                             elif(transarr[u] == '--'):
-                                incrimentation = -1
-                                incriment_local = u
+                                incriment_modifier = "-1"
                                 u += 1
                             elif(transarr[u] == " " or transarr[u] == ''):
                                 del transarr[u]
@@ -185,59 +227,33 @@ def main():
                                 if(u < bool_local):
                                     bool_local -= 1
                                 y -= 1
+                                variable_name = transarr[x+1]
+                            elif(transarr[u] == '-=' or transarr[u] == '+='):
+                                incriment_modifier = transarr[u+1:y]
+                                u += 1
                             else:
                                 u += 1
-                        print(transarr[y-1])
-                        if(transarr[y-1] == '++'):
+                        while(incriment_modifier.endswith("+") or
+                              incriment_modifier.endswith("-")or
+                              incriment_modifier.endswith(" ")):
+                            incriment_modifier = incriment_modifier[:-1]
+                        while(incriment_modifier.startswith("+") or
+                              incriment_modifier.startswith(" ")):
+                            incriment_modifier = incriment_modifier[1:]
+                        if not incriment_modifier == "":
+                            text = " {0} in range({1}, {2}, {3})"\
+                                "".format(transarr[x+1],
+                                          ''.join(transarr[q+1:bool_local-1
+                                                           ]),
+                                          ''.join(transarr[bool_local+1]
+                                                  ) + maximum_modifier,
+                                          ''.join(incriment_modifier))
+                        else:
                             text = " {0} in range({1}, {2})"\
                                 "".format(transarr[x+1],
                                           ''.join(transarr[q+1:bool_local-1]),
-                                          ''.join(transarr[bool_local+1:
-                                                           incriment_local-1]
-                                                  ))
-                        elif(transarr[y-1] == '--'):
-                            text = " {0} in range({1}, {2}, {3})"\
-                                "".format(transarr[x+1],
-                                          ''.join(transarr[q+1:bool_local-1]),
-                                          ''.join(transarr[bool_local+1:
-                                                           incriment_local-1]
-                                                  ) + maximum_modifier,
-                                          incrimentation)
-
-                        elif(transarr[y-1] == '-='):
-                            text = " {0} in range({1}, {2}, -({3}))"\
-                                "".format(transarr[x+1],
-                                          ''.join(transarr[q+1:bool_local-1
-                                                           ]),
-                                          ''.join(transarr[bool_local+1:
-                                                           incriment_local
-                                                           - 1]
-                                                  ) + maximum_modifier,
-                                          ''.join(transarr[incriment_local
-                                                           + 1:y]))
-                        elif(transarr[y-1] == '+='):
-                            text = " {0} in range({1}, {2}, {3})"\
-                                "".format(transarr[x+1],
-                                          ''.join(transarr[q+1:bool_local-1
-                                                           ]),
-                                          ''.join(transarr[bool_local+1:
-                                                           incriment_local
-                                                           - 1]
-                                                  ) + maximum_modifier,
-                                          ''.join(transarr[incriment_local
-                                                           + 1:y]))
-                        else:
-                            text = " {0} in range({1}, {2}, {3})"\
-                                "".format(transarr[x+1],
-                                          ''.join(transarr[q+1:bool_local-1
-                                                           ]),
-                                          ''.join(transarr[bool_local+1:
-                                                           incriment_local
-                                                           - 1]
-                                                  ) + maximum_modifier,
-                                          ''.join(transarr[incriment_local
-                                                           + 1:y]))
-
+                                          ''.join(transarr[bool_local+1]
+                                                  ) + maximum_modifier)
                         print(text)
                         del transarr[x:y+1]
                         transarr.insert(x, text)
