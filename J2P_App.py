@@ -1,6 +1,9 @@
-from tkinter import *
-from tkinter import filedialog
-import os
+# Code origionally written by collegues that did not give the needed info
+# to give credit. Will further be edited by Jonathan-Moore-312 and Canadia013
+# from v0.0.2-alpha further
+
+from tkinter import N, S, W, E, END, NSEW, filedialog, Button, Text, Label,\
+    Scrollbar, Tk
 import shutil
 import translator
 import importlib
@@ -89,16 +92,20 @@ def translateFile():
     transarr = translator.transarr
     shutil.os.remove("fileToParse.java")
     number_indents = 0
+    ignore_syntax = False
     for index, y in enumerate(transarr):
-        if(y == ':'):
+        if(y.startswith('#')):
+            ignore_syntax = True
+        elif(y == ':' and not ignore_syntax):
             number_indents += 1
-        if(y == '\t'):
+        elif(y == '\t' and not ignore_syntax):
             number_indents -= 1
         if(index != 0):
             if(transarr[index-1] == '\n'):
                 if(y == '\n'):
                     continue
                 else:
+                    ignore_syntax = False
                     print('\t'*number_indents, y, end='', sep='')
                     pythonText.insert(END, '\t'*number_indents+y)
                     newFile.write('\t' * number_indents)
@@ -114,7 +121,8 @@ def translateFile():
     importlib.reload(translator)
 
     resultsText.insert(END, "JAVA FILE HAS BEEN TRANSLATED TO PYTHON\n")
-    resultsText.insert(END, "TOTAL TIME TO TRANSLATE: " + str(total_time) + " SECONDS\n")
+    resultsText.insert(END, "TOTAL TIME TO TRANSLATE: " + str(total_time)
+                       + " SECONDS\n")
     resultsText.insert(END, "**************************\n")
 
     newFile.close()
@@ -124,8 +132,6 @@ translateButton = Button(window, text='TRANSLATE', fg='limegreen',
                          bg='black', activebackground='red',
                          command=translateFile)
 translateButton.grid(row=3, column=2, sticky=W+E)
-
-# Button to run the translated code. Currently not fully functional so commented out for demo.
 
 
 def runTransFile():
